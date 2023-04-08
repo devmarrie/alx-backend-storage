@@ -1,0 +1,2 @@
+-- Creates a index 
+-- Ontable names and the first letter of name
