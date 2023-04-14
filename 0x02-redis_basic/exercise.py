@@ -45,6 +45,21 @@ def call_history(method: Callable) -> Callable:
         return output
     return history
 
+def replay(method: Callable) -> Callable:
+        """display the history of calls of a particular function
+        """
+        key = method.__qualname__
+        redis = int(Cache()._redis.get(key))
+        print(f"{key} was called {redis} times:")
+        for i, (input_key, output_key) in enumerate(
+            zip(redis._redis.lrange(f"{key}:inputs", 0, -1), redis._redis.lrange(
+            f"{key}:outputs", 0, -1))):
+           input_str = input_key.decode('utf-8')
+           output_str = output_key.decode('utf-8')
+           inputs = eval(input_str) if input_str != 'None' else ()
+           output = eval(output_str) if output_str != 'None' else None
+        print(f"{key}(*{inputs}) -> {output_key.decode('utf-8')}")
+
 
 class Cache():
     """Define  instance variable called redis
@@ -99,3 +114,5 @@ class Cache():
         only
         """
         return self.get(key, fn=int)
+    
+    
