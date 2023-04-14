@@ -5,7 +5,7 @@ The class has a method store that updates redis
 """
 import redis
 import uuid
-from typing import Union
+from typing import Union, Callable, Optional
 
 
 class Cache():
@@ -33,3 +33,29 @@ class Cache():
         key = str(uuid.uuid4())
         self._redis.set(key, data)
         return key
+
+    def get(self, key: str,
+            fn: Callable = None) -> Union[str, bytes, int, float, None]:
+        """Takes a value and converts it to its required formart
+           Args:
+                key: string from redis
+                fn: callable which converts to the other formarts
+           Returns:
+                str, bytes, int, float, None(if key does not exist)
+        """
+        value = self._redis.get(key)
+        if fn:
+            value = fn(value)
+        return value
+
+    def get_str(self, key: str) -> Optional[str]:
+        """Returns the string
+           in utf-8
+        """
+        return self.get(key, fn=lambda x: x.decode('utf-8'))
+
+    def get_int(self, key: str) -> Optional[int]:
+        """Returns the integer values
+        only
+        """
+        return self.get(key, fn=int)
