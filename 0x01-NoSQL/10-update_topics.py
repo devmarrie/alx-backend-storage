@@ -3,9 +3,10 @@
 """
 import pymongo
 
+
 def update_topics(mongo_collection, name, topics):
     """Based on the name all topics of the school document are changed
     """
     return mongo_collection.update_many(
-        {"name":name}, {"$set": {"topics": topics}}
+        {"name": name}, {"$set": {"topics": topics}}
         )
