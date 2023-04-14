@@ -30,8 +30,22 @@ def count_calls(method: Callable) -> Callable:
         return method(self, *args, **kwargs)
     return increment
 
+def call_history(method: Callable) -> Callable:
+    
+    @wraps(method)
+    def history(self, *args, **kwargs):
+        """Customised inputs
+           Returns:
+                  result of the method
+        """
+        input = str(args)
+        self._redis.rpush(method.__qualname__ + ":inputs", input)
+        output = str(method(self, *args, **kwargs))
+        self._redis.rpush(method.__qualname__ + ":outputs", output)
+        return output
+    return history
 
-@count_calls
+
 class Cache():
     """Define  instance variable called redis
        Attributes:
@@ -46,7 +60,9 @@ class Cache():
         """
         self._redis = redis.Redis()
         self._redis.flushdb()
-
+    
+    @count_calls
+    @call_history
     def store(self, data: Union[str, bytes, int, float]) -> str:
         """Deals with data storage
            Args:
