@@ -6,8 +6,32 @@ The class has a method store that updates redis
 import redis
 import uuid
 from typing import Union, Callable, Optional
+from functools import wraps
 
 
+def count_calls(method: Callable) -> Callable:
+    """:param method: The method to be decorated.
+       :return: A new Callable that wraps the
+                original method and counts its calls.
+    """
+    key = method.__qualname__
+
+    @wraps(method)
+    def increment(self, *args, **kwargs):
+        """Councts the increments
+           :param self: The instance of the Cache class.
+           :param args: Any positional arguments passed
+                        to the decorated method.
+           :param kwargs: Any keyword arguments passed
+                          to the decorated method.
+           :return: The result of the decorated method.
+        """
+        self._redis.incr(key)
+        return method(self, *args, **kwargs)
+    return increment
+
+
+@count_calls
 class Cache():
     """Define  instance variable called redis
        Attributes:
